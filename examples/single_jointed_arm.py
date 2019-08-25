@@ -63,18 +63,18 @@ class SingleJointedArm(frccnt.System):
 
         # TY oblarg
         # Scale gains to output
-        kp = kp / 12 * 10
-        kd = kd / 12 * 10
+        kp = kp / 12 * 1023
+        kd = kd / 12 * 1023
 
         # Rescale kD if not time-normalized
         if not False:
-            kd = kd/self.dt
+            kd = kd/0.001#self.dt
 
         # Get correct conversion factor for rotations
         # if STATE.units.get() == 'Degrees':
-        rotation = 360
+        # rotation = 360
         # elif STATE.units.get() == 'Radians':
-        # rotation = 2*math.pi
+        rotation = 2*math.pi
         # elif STATE.units.get() == 'Rotations':
             # rotation = 1
 
@@ -84,9 +84,6 @@ class SingleJointedArm(frccnt.System):
         kd = kd * rotation / (4096 * 8)
             # if STATE.loop_type.get() == 'Velocity':
             #     kp = kp * 10
-
-        print(kp)
-        print(kd)
 
         return [kp, kd]
 
