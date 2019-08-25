@@ -33,16 +33,16 @@ class SingleJointedArm(frccnt.System):
         # Number of motors
         num_motors = 1.0
         # Mass of arm in kg
-        m = 2.2675
+        m = 4
         # Length of arm in m
-        l = 1.2192
+        l = 0.2
         # Arm moment of inertia in kg-m^2
         J = 1 / 3 * m * l ** 2
         # Gear ratio
-        G = 1.0 / 2.0
+        G = 480.0 / 1.0
 
         return frccnt.models.single_jointed_arm(
-            frccnt.models.MOTOR_CIM, num_motors, J, G
+            frccnt.models.MOTOR_775PRO, num_motors, J, G
         )
 
     def design_controller_observer(self):
@@ -57,9 +57,42 @@ class SingleJointedArm(frccnt.System):
         r_vel = 0.01
         self.design_kalman_filter([q_pos, q_vel], [r_pos])
 
+    def design_Talon_PID(self):
+        kp = self.K[0, 0]
+        kd = self.K[0, 1]
+
+        # TY oblarg
+        # Scale gains to output
+        kp = kp / 12 * 10
+        kd = kd / 12 * 10
+
+        # Rescale kD if not time-normalized
+        if not False:
+            kd = kd/self.dt
+
+        # Get correct conversion factor for rotations
+        # if STATE.units.get() == 'Degrees':
+        rotation = 360
+        # elif STATE.units.get() == 'Radians':
+        # rotation = 2*math.pi
+        # elif STATE.units.get() == 'Rotations':
+            # rotation = 1
+
+        # Scale by gearing if using Talon
+        # if STATE.controller_type.get() == 'Talon':
+        kp = kp * rotation / (4096 * 8)
+        kd = kd * rotation / (4096 * 8)
+            # if STATE.loop_type.get() == 'Velocity':
+            #     kp = kp * 10
+
+        print(kp)
+        print(kd)
+
+        return [kp, kd]
+
 
 def main():
-    dt = 0.00505
+    dt = 0.001
     single_jointed_arm = SingleJointedArm(dt)
     single_jointed_arm.export_cpp_coeffs("SingleJointedArm", "subsystems/")
     single_jointed_arm.export_java_coeffs("SingleJointedArm")
@@ -84,6 +117,9 @@ def main():
     for i in range(len(t)):
         r = np.array([[xprof[i]], [vprof[i]]])
         refs.append(r)
+
+    pid = single_jointed_arm.design_Talon_PID()
+    print("kp %f kd %f" % (pid[0], pid[1]))
 
     if "--save-plots" in sys.argv or "--noninteractive" not in sys.argv:
         plt.figure(2)
