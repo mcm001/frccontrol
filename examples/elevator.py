@@ -58,7 +58,8 @@ class Elevator(frccnt.System):
 
     def calcGains(self):
         kp = self.K[0, 0] # volts per meter
-        rotation = 0.1016 * math.pi
+        kp = kp / 12 * 1023
+        rotation = 0.019 * math.pi
         # volts per meter times meters per rot is volts per rot
         kp = kp * rotation
         # volts per rotation div native unit per rotation is volts per native unit
@@ -67,11 +68,11 @@ class Elevator(frccnt.System):
         # raw units per 100ms
         kp = kp * 10
         print(kp)
-        print(self.Kff)
+        # print(self.Kff)
 
         # voltage to hold us up
-        print(_gearbox.free_speed / 12.0)
-        print(_gearbox.stall_torque / 12.0)
+        # print(_gearbox.free_speed / 12.0)
+        # print(_gearbox.stall_torque / 12.0)
 
         return kp
 
