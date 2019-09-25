@@ -57,6 +57,8 @@ MOTOR_AM_9015 = DcBrushedMotor(12.0, 0.36, 71.0, 3.7, 14270.0)
 # Banebots RS 550
 MOTOR_BB_RS550 = DcBrushedMotor(12.0, 0.38, 84.0, 0.4, 19000.0)
 
+MOTOR_NEO = DcBrushedMotor(12.0, 2.6, 105.0, 1.8, 5676)
+
 
 def gearbox(motor, num_motors):
     """Returns a DcBrushedMotor with the same characteristics as the specified
@@ -96,6 +98,34 @@ def elevator(motor, num_motors, m, r, G):
     B = np.array([[0],
                   [G * motor.Kt / (motor.R * r * m)]])
     C = np.array([[1, 0]])
+    D = np.array([[0]])
+    # fmt: on
+
+    return cnt.ss(A, B, C, D)
+
+def elevatorVelocityMode(motor, num_motors, m, r, G):
+    """Returns the state-space model for an elevator in velocity mode.
+
+    States: [[velocity]]
+    Inputs: [[voltage]]
+    Outputs: [[position]]
+
+    Keyword arguments:
+    motor -- instance of DcBrushedMotor
+    num_motors -- number of motors driving the mechanism
+    m -- carriage mass in kg
+    r -- pulley radius in meters
+    G -- gear ratio from motor to carriage
+
+    Returns:
+    StateSpace instance containing continuous model
+    """
+    motor = gearbox(motor, num_motors)
+
+    # fmt: off
+    A = np.array([[G**2 * motor.Kt / (motor.R * r**2 * m * motor.Kv)]])
+    B = np.array([[G * motor.Kt / (motor.R * r * m)]])
+    C = np.array([[1]])
     D = np.array([[0]])
     # fmt: on
 

@@ -11,6 +11,7 @@ if "--noninteractive" in sys.argv:
 import frccontrol as frccnt
 import matplotlib.pyplot as plt
 import numpy as np
+import math
 
 
 class Elevator(frccnt.System):
@@ -30,33 +31,57 @@ class Elevator(frccnt.System):
 
     def create_model(self, states):
         # Number of motors
-        num_motors = 2.0
+        num_motors = 4.0
         # Elevator carriage mass in kg
-        m = 6.803886
+        m = 30
         # Radius of pulley in meters
-        r = 0.02762679089
+        r = 0.019
         # Gear ratio
-        G = 42.0 / 12.0 * 40.0 / 14.0
+        G = 14.67 / 1.0
 
-        return frccnt.models.elevator(frccnt.models.MOTOR_CIM, num_motors, m, r, G)
+        self._gearbox = frccnt.models.gearbox(frccnt.models.MOTOR_775PRO, num_motors)
+        return frccnt.models.elevatorVelocityMode(frccnt.models.MOTOR_775PRO, num_motors, m, r, G)
 
     def design_controller_observer(self):
-        q = [0.02, 0.4]
+
+        print("desiging lqr")
+
+        q = [0.01]
         r = [12.0]
         self.design_lqr(q, r)
         self.design_two_state_feedforward(q, r)
 
-        q_pos = 0.05
-        q_vel = 1.0
+        # q_pos = 0.05
+        q_vel = 0.04
         r_pos = 0.0001
-        self.design_kalman_filter([q_pos, q_vel], [r_pos])
+        self.design_kalman_filter([q_vel], [r_pos])
 
+    def calcGains(self):
+        kp = self.K[0, 0] # volts per meter
+        rotation = 0.1016 * math.pi
+        # volts per meter times meters per rot is volts per rot
+        kp = kp * rotation
+        # volts per rotation div native unit per rotation is volts per native unit
+        kp = kp / (4096)
+
+        # raw units per 100ms
+        kp = kp * 10
+        print(kp)
+        print(self.Kff)
+
+        # voltage to hold us up
+        print(_gearbox.free_speed / 12.0)
+        print(_gearbox.stall_torque / 12.0)
+
+        return kp
 
 def main():
-    dt = 0.00505
+    dt = 0.001
     elevator = Elevator(dt)
-    elevator.export_cpp_coeffs("Elevator", "subsystems/")
-    elevator.export_java_coeffs("Elevator")
+    # elevator.export_cpp_coeffs("Elevator", "subsystems/")
+    # elevator.export_java_coeffs("Elevator")
+
+    elevator.calcGains()
 
     if "--save-plots" in sys.argv or "--noninteractive" not in sys.argv:
         try:
