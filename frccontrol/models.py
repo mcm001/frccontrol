@@ -92,6 +92,9 @@ def elevator(motor, num_motors, m, r, G):
     """
     motor = gearbox(motor, num_motors)
 
+    print("motor kv %s kt %s" % (motor.Kv, motor.Kt))
+    print("motor R %s" % motor.R)
+
     # fmt: off
     A = np.array([[0, 1],
                   [0, -G**2 * motor.Kt / (motor.R * r**2 * m * motor.Kv)]])
@@ -100,6 +103,18 @@ def elevator(motor, num_motors, m, r, G):
     C = np.array([[1, 0]])
     D = np.array([[0]])
     # fmt: on
+
+    print("-kv / ka: %s" % A[1, 1])
+    print("1/ka: %s" % B[1]) 
+    # kv is in volts per m/s
+    # ka is in volts per m/s^2
+    #kv: 4.69 volts per m/s 
+    # or 0.213 m/s per volt, with circumference of 0.12m gives
+    # 7.16 rotations/s per volt or 45pi rad/s per volt
+
+    #ka: 0.164 volts per m/s^2 
+    # torquepervolt = kWheelRadius.meter * kWheelRadius.meter * kRobotMass / (2.0 * kADriveLeftLow)
+    # or 1.54 N m per volt
 
     return cnt.ss(A, B, C, D)
 

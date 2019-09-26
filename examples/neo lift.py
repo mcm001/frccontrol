@@ -31,15 +31,16 @@ class Elevator(frccnt.System):
 
     def create_model(self, states):
         # Number of motors
-        num_motors = 4.0
+        num_motors = 1.0
         # Elevator carriage mass in kg
         m = 35
         # Radius of pulley in meters
         r = 0.019
         # Gear ratio
-        G = 14.67 / 1.0
+        G = 42.0 / 1.0
 
-        return frccnt.models.elevator(frccnt.models.MOTOR_775PRO, num_motors, m, r, G)
+        # self._gearbox = frccnt.models.gearbox(frccnt.models.MOTOR_NEO, num_motors)
+        return frccnt.models.elevator(frccnt.models.MOTOR_NEO, num_motors, m, r, G)
 
     def design_controller_observer(self):
 
@@ -57,16 +58,21 @@ class Elevator(frccnt.System):
 
     def calcGains(self):
         kp = self.K[0, 0] # volts per meter
-        kp = kp / 12 * 1023
+        kp = kp / 12 * 1 # div volts times max pid out
         rotation = 0.019 * math.pi
         # volts per meter times meters per rot is volts per rot
         kp = kp * rotation
-        # volts per rotation div native unit per rotation is volts per native unit
-        kp = kp / (4096)
+        # volts per rotation per sec divided by 60 is volts per rpm
+        kp = kp / 60.0
 
         # raw units per 100ms
         # kp = kp * 10
         print(kp)
+        # print(self.Kff)
+
+        # voltage to hold us up
+        # print(_gearbox.free_speed / 12.0)
+        # print(_gearbox.stall_torque / 12.0)
 
         return kp
 
@@ -97,7 +103,7 @@ def main():
 
     # refs = []
 
-    # Generate references for simulation
+    # # Generate references for simulation
     # for i in range(len(t)):
     #     if t[i] < l0:
     #         r = np.array([[0.0], [0.0]])
@@ -108,7 +114,7 @@ def main():
     #     refs.append(r)
 
     t, xprof, vprof, aprof = frccnt.generate_s_curve_profile(
-        max_v=0.3, max_a=3, time_to_max_a=0.2, dt=dt, goal=0.33
+        max_v=0.15, max_a=3, time_to_max_a=0.2, dt=dt, goal=0.33
     )
 
     # Generate references for simulation
