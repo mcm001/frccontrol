@@ -76,6 +76,8 @@ class DifferentialDrive(frccnt.System):
         r = [12.0, 12.0]
         self.design_lqr(q, r)
 
+        print("Q matrix is %s" % self.Q)
+
         qff_pos = 0.005
         qff_vel = 1.0
         self.design_two_state_feedforward(

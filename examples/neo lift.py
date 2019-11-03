@@ -40,7 +40,7 @@ class Elevator(frccnt.System):
         G = 42.0 / 1.0
 
         # self._gearbox = frccnt.models.gearbox(frccnt.models.MOTOR_NEO, num_motors)
-        return frccnt.models.elevator(frccnt.models.MOTOR_NEO, num_motors, m, r, G)
+        return frccnt.models.elevator(frccnt.models.MOTOR_CIM, num_motors, m, r, G)
 
     def design_controller_observer(self):
 
